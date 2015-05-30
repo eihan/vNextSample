@@ -17,10 +17,14 @@ using Microsoft.AspNet.Routing;
 using Microsoft.Data.Entity;
 using Microsoft.Framework.ConfigurationModel;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
+//using Microsoft.Framework.Logging;
 using Microsoft.Framework.Logging.Console;
 using Microsoft.Framework.Runtime;
 using WebApplication.Models;
+using Serilog;
+
+using MongoDB;
+using MongoDB.Driver;
 
 namespace WebApplication
 {
@@ -77,6 +81,22 @@ namespace WebApplication
                 options.ClientSecret = Configuration["Authentication:MicrosoftAccount:ClientSecret"];
             });
 
+            //Add logging
+            services.AddSingleton<ILogger>(x=>
+            {
+                return new LoggerConfiguration()
+                    .WriteTo.ColoredConsole()
+                    .CreateLogger();
+            });
+            
+            //Add mongodb
+             services.AddSingleton<IMongoDatabase>(x=>
+            {
+                var client = new MongoClient("mongodb://localhost");
+                return client.GetDatabase("react-tweets");
+            });
+            
+
             // Add MVC services to the services container.
             services.AddMvc();
 
@@ -86,13 +106,13 @@ namespace WebApplication
         }
 
         // Configure is called after ConfigureServices is called.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerfactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env /*, ILoggerFactory loggerfactory*/)
         {
                     
             // Configure the HTTP request pipeline.
 
             // Add the console logger.
-            loggerfactory.AddConsole(minLevel: LogLevel.Warning);
+            // loggerfactory.AddConsole(minLevel: LogLevel.Warning);
 
             // Add the following to the request pipeline only in development environment.
             if (env.IsEnvironment("Development"))
